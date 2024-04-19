@@ -1,10 +1,22 @@
+import axios from "axios";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { URL } from "../config";
 
 export default function Login() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const onclick = () => {
-    console.log("hi from login");
+  const onclick = async () => {
+    const response = await axios.post(`${URL}/user/signin`, {
+      email: email,
+      password: password,
+    });
+    console.log(response);
+    if (response.data.token) {
+      localStorage.setItem("token", `Bearer ` + response.data.token);
+      navigate("/");
+    }
   };
   return (
     <>

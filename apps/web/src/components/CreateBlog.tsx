@@ -1,23 +1,56 @@
+import axios from "axios";
 import { useState } from "react";
-
+import { ID, UPLOAD_PRESET, URL } from "../config";
 const Blog = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [image, setImage] = useState<any>(null);
-
-  const handleImage = (e: any) => {
+  const [isUploading, setIsUploading] = useState(false);
+  const handleImage = async (e: any) => {
     const file = e.target.files[0];
     if (file) {
-      setImage(file);
+      setIsUploading(true);
+      const data = new FormData();
+      data.append("file", file);
+      data.append("upload_preset", UPLOAD_PRESET);
+      try {
+        const res = await fetch(
+          `https://api.cloudinary.com/v1_1/${ID}/image/upload`,
+          {
+            method: "POST",
+            body: data,
+          }
+        );
+        if (res.ok) {
+          const img = await res.json();
+          setImage(img);
+        } else {
+          console.error("Failed to upload image:", res.statusText);
+        }
+      } catch (error) {
+        console.error("Error uploading image:", error);
+      } finally {
+        setIsUploading(false);
+      }
     }
   };
 
-  const handleSubmit = (e: any) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
-    console.log("Blog Post Data:", { title, description, image });
-    setTitle("");
-    setDescription("");
-    setImage(null);
+    if (image) {
+      const response = await axios.post(`${URL}/blog`, {
+        title: title,
+        content: description,
+        image: image,
+        authorId: "590ad02a-940d-4099-97b1-f7e300c9cf02",
+      });
+      console.log(response);
+      setTitle("");
+      setDescription("");
+      setImage(null);
+    } else {
+      console.error("Image not uploaded");
+    }
   };
 
   return (
@@ -76,8 +109,9 @@ const Blog = () => {
         <button
           type="submit"
           className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          disabled={isUploading}
         >
-          Create Blog Post
+          {isUploading ? "Uploading.." : "Create a Blog Post"}
         </button>
       </form>
     </div>

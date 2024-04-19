@@ -6,6 +6,7 @@ import { verify } from "hono/jwt";
 interface Post {
   title: string;
   content: string;
+  image: string;
   authorId: string;
 }
 
@@ -20,7 +21,7 @@ export const blogRoute = new Hono<{
 }>();
 
 blogRoute.use("/api/v1/blog/*", async (c, next) => {
-  const header = c.req.header("authorization");
+  const header = c.req.header("token");
   if (!header) {
     c.status(401);
     return c.json({
@@ -50,6 +51,7 @@ blogRoute.post("/", async (c) => {
     data: {
       title: body.title,
       content: body.content,
+      image: body.image,
       authorId: body.authorId,
     },
   });
@@ -72,6 +74,7 @@ blogRoute.put("/", async (c) => {
     data: {
       title: body.title,
       content: body.content,
+      image: body.image
     },
   });
   return c.text("Post Updated Successfully");
